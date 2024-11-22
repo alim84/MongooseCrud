@@ -1,19 +1,36 @@
 const express = require("express");
-const DBConnect = require("./DBConnect/dbconnect");
+const mongoose = require("mongoose");
 const crudModel = require("./models/crudModel");
 const app = express();
-DBConnect();
+
 app.use(express.json());
 const port = 4000;
+
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect("mongodb://127.0.0.1:27017/crud");
+    console.log("db is connected");
+  } catch (error) {
+    console.log("db is not connected");
+    console.log(error.massage);
+    process.exit(1);
+  }
+};
+
 
 app.post("/creatdata", async(req, res) => {
   let {name} =req.body
   let crudModel= new crudModel({
     name
   })
+ try{
   await crudModel.save()
-  res.status(201).send({message:"Insert Data"})
-});
+  res.status(201).send({message:"Data Inserted"})
+ }catch(error){
+res.status(500).send({message:"Data not Inserted", error})
+ }
+})
 
 
 app.get("/alldata", async (req, res) => {
@@ -40,6 +57,7 @@ app.patch("/updatedata/:id", async (req, res) => {
   res.status(200).send({message: "Get all Data", updatedata });
 });
 
-app.listen(port, (req, res) => {
+app.listen(port, async (req, res) => {
   console.log(`Server is running http://localhost:${port}`);
+  await connectDB();
 });
